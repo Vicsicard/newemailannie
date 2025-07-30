@@ -1,0 +1,50 @@
+{
+  "contacts": [
+    {
+      "id": "6b543040-7b30-44fd-9aa2-f26af60b9b86",
+      "email": "test1@example.com",
+      "first_name": "Test",
+      "last_name": "User1",
+      "company": "Test Company",
+      "phone": "555-123-4567",
+      "campaign_status": "Maybe Interested"
+    },
+    {
+      "id": "658a43d0-6e64-4bc2-9104-39be2a594b8a",
+      "email": "test2@example.com",
+      "first_name": "Test",
+      "last_name": "User2",
+      "company": "Another Company",
+      "phone": "555-987-6543",
+      "campaign_status": "Interested"
+    },
+    {
+      "id": "47920b51-0a88-419e-b079-e50f5ed0f17f",
+      "email": "potential_client@example.com",
+      "first_name": null,
+      "last_name": "Unknown",
+      "company": null,
+      "phone": null,
+      "campaign_status": "Interested"
+    },
+    {
+      "id": "4775490b-e9d6-466c-8c8f-db827f527aa0",
+      "email": "maybe_interested@example.com",
+      "first_name": null,
+      "last_name": "Unknown",
+      "company": null,
+      "phone": null,
+      "campaign_status": "Interested"
+    },
+    {
+      "id": "49a050e6-4b50-4613-b8bb-f32a74d02f79",
+      "email": "not_interested@example.com",
+      "first_name": null,
+      "last_name": "Unknown",
+      "company": null,
+      "phone": null,
+      "campaign_status": "Not Interested"
+    }
+  ],
+  "activities": []
+}

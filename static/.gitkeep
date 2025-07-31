@@ -1,0 +1,2 @@
+# This file ensures the static directory is included in Git
+# The static directory is required for the FastAPI application to serve static files

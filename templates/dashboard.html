@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Email Agent{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Quick Stats -->
+    <div class="col-md-12 mb-4">
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Emails Processed</h5>
+                                <h2 class="mb-0">{{ stats.total_emails_processed }}</h2>
+                            </div>
+                            <div>
+                                <i class="bi bi-envelope-check fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Interested Leads</h5>
+                                <h2 class="mb-0">{{ stats.classifications.Interested }}</h2>
+                            </div>
+                            <div>
+                                <i class="bi bi-person-check fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Maybe Interested</h5>
+                                <h2 class="mb-0">{{ stats.classifications['Maybe Interested'] }}</h2>
+                            </div>
+                            <div>
+                                <i class="bi bi-person-dash fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Not Interested</h5>
+                                <h2 class="mb-0">{{ stats.classifications['Not Interested'] }}</h2>
+                            </div>
+                            <div>
+                                <i class="bi bi-person-x fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Search -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Email Search</h5>
+            </div>
+            <div class="card-body">
+                <form action="/dashboard/email-search" method="get">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="search_term" placeholder="Search emails...">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="/dashboard/email-search" class="btn btn-outline-secondary btn-sm">Advanced Search</a>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm me-2" onclick="window.location.href='/dashboard/email-search?date_from={{ today }}'">Today's Emails</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.location.href='/dashboard/email-search?search_term=urgent'">Urgent Emails</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Contact Search -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Contact Search</h5>
+            </div>
+            <div class="card-body">
+                <form action="/dashboard/contact-search" method="get">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="search_term" placeholder="Search contacts...">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="/dashboard/contact-search" class="btn btn-outline-secondary btn-sm">Advanced Search</a>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm me-2" onclick="window.location.href='/dashboard/contact-search?record_type=Contact'">Contacts</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.location.href='/dashboard/contact-search?record_type=Lead'">Leads</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Emails -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Emails</h5>
+                <a href="/dashboard/email-search" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Sender</th>
+                                <th>Subject</th>
+                                <th>Date</th>
+                                <th>Classification</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for email in recent_emails %}
+                            <tr>
+                                <td>{{ email.sender }}</td>
+                                <td>{{ email.subject }}</td>
+                                <td>{{ email.received_date }}</td>
+                                <td>
+                                    {% if email.classification == 'Interested' %}
+                                    <span class="badge bg-success">Interested</span>
+                                    {% elif email.classification == 'Maybe Interested' %}
+                                    <span class="badge bg-warning text-dark">Maybe</span>
+                                    {% elif email.classification == 'Not Interested' %}
+                                    <span class="badge bg-danger">Not Interested</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="/dashboard/emails/{{ email.message_id }}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No recent emails found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

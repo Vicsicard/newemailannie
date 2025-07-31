@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Email Search - AI Email Agent{% endblock %}
+
+{% block page_title %}Email Search{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Search Form -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Search Emails</h5>
+            </div>
+            <div class="card-body">
+                <form id="emailSearchForm" action="/dashboard/email-search" method="get">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="search_term" class="form-label">Search Term</label>
+                            <input type="text" class="form-control" id="search_term" name="search_term" value="{{ request.query_params.get('search_term', '') }}" placeholder="Search in subject or body">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sender" class="form-label">Sender</label>
+                            <input type="text" class="form-control" id="sender" name="sender" value="{{ request.query_params.get('sender', '') }}" placeholder="Sender email address">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" name="subject" value="{{ request.query_params.get('subject', '') }}" placeholder="Email subject">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_from" class="form-label">Date From</label>
+                            <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request.query_params.get('date_from', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_to" class="form-label">Date To</label>
+                            <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request.query_params.get('date_to', '') }}">
+                        </div>
+                        <div class="col-12 d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">Clear</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Search Results</h5>
+                {% if emails %}
+                <span class="badge bg-primary">{{ total_count }} emails found</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if emails %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Sender</th>
+                                <th>Subject</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for email in emails %}
+                            <tr class="result-item">
+                                <td>{{ email.sender }}</td>
+                                <td>{{ email.subject }}</td>
+                                <td>{{ email.received_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="/dashboard/emails/{{ email.message_id }}" class="btn btn-sm btn-outline-primary">View</a>
+                                    <a href="/dashboard/emails/{{ email.message_id }}/thread" class="btn btn-sm btn-outline-secondary">Thread</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if has_more or page > 1 %}
+                <nav aria-label="Search results pages">
+                    <ul class="pagination justify-content-center">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ pagination_url }}&page={{ page - 1 }}">Previous</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for p in range(max(1, page - 2), min(page + 3, (total_count // page_size) + 2)) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link" href="{{ pagination_url }}&page={{ p }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                        
+                        {% if has_more %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ pagination_url }}&page={{ page + 1 }}">Next</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="alert alert-info" role="alert">
+                    {% if search_performed %}
+                    No emails found matching your search criteria.
+                    {% else %}
+                    Enter search criteria and click "Search" to find emails.
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function clearForm() {
+        document.getElementById('search_term').value = '';
+        document.getElementById('sender').value = '';
+        document.getElementById('subject').value = '';
+        document.getElementById('date_from').value = '';
+        document.getElementById('date_to').value = '';
+    }
+</script>
+{% endblock %}

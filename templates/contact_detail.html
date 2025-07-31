@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Detail - AI Email Agent{% endblock %}
+
+{% block page_title %}Contact Detail{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Contact Header -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ contact.first_name }} {{ contact.last_name }}</h5>
+                <a href="/dashboard/contact-search" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Search
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>
+                            <span class="badge {% if contact.record_type == 'Contact' %}bg-info{% else %}bg-warning text-dark{% endif %} mb-2">
+                                {{ contact.record_type }}
+                            </span>
+                        </p>
+                        <p><strong>Email:</strong> {{ contact.email }}</p>
+                        <p><strong>Phone:</strong> {{ contact.phone or 'N/A' }}</p>
+                        <p><strong>Company:</strong> {{ contact.company or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Title:</strong> {{ contact.title or 'N/A' }}</p>
+                        <p><strong>Campaign Status:</strong> {{ contact.campaign_status or 'N/A' }}</p>
+                        <p><strong>Salesforce ID:</strong> {{ contact.id }}</p>
+                        <p><strong>Last Modified:</strong> {{ contact.last_modified.strftime('%Y-%m-%d %H:%M:%S') if contact.last_modified else 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Details -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Additional Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tbody>
+                        {% if contact.address %}
+                        <tr>
+                            <th scope="row">Address</th>
+                            <td>{{ contact.address }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if contact.city %}
+                        <tr>
+                            <th scope="row">City</th>
+                            <td>{{ contact.city }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if contact.state %}
+                        <tr>
+                            <th scope="row">State</th>
+                            <td>{{ contact.state }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if contact.postal_code %}
+                        <tr>
+                            <th scope="row">Postal Code</th>
+                            <td>{{ contact.postal_code }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if contact.country %}
+                        <tr>
+                            <th scope="row">Country</th>
+                            <td>{{ contact.country }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if contact.industry %}
+                        <tr>
+                            <th scope="row">Industry</th>
+                            <td>{{ contact.industry }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if contact.lead_source %}
+                        <tr>
+                            <th scope="row">Lead Source</th>
+                            <td>{{ contact.lead_source }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Activities -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Related Activities</h5>
+            </div>
+            <div class="card-body">
+                {% if contact.activities and contact.activities|length > 0 %}
+                <div class="list-group">
+                    {% for activity in contact.activities %}
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ activity.subject }}</h6>
+                            <small>{{ activity.activity_date.strftime('%Y-%m-%d') if activity.activity_date else 'N/A' }}</small>
+                        </div>
+                        <p class="mb-1">{{ activity.description }}</p>
+                        <small class="text-muted">{{ activity.type }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info" role="alert">
+                    No activities found for this contact.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Emails -->
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Related Emails</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Date</th>
+                                <th>Classification</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if contact.related_emails and contact.related_emails|length > 0 %}
+                            {% for email in contact.related_emails %}
+                            <tr class="result-item">
+                                <td>{{ email.subject }}</td>
+                                <td>{{ email.received_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if email.classification == 'Interested' %}
+                                    <span class="badge bg-success">Interested</span>
+                                    {% elif email.classification == 'Maybe Interested' %}
+                                    <span class="badge bg-warning text-dark">Maybe</span>
+                                    {% elif email.classification == 'Not Interested' %}
+                                    <span class="badge bg-danger">Not Interested</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="/dashboard/emails/{{ email.message_id }}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">No related emails found</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

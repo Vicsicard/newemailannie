@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Search - AI Email Agent{% endblock %}
+
+{% block page_title %}Contact Search{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Search Form -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Search Contacts</h5>
+            </div>
+            <div class="card-body">
+                <form id="contactSearchForm" action="/dashboard/contact-search" method="get">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="search_term" class="form-label">Search Term</label>
+                            <input type="text" class="form-control" id="search_term" name="search_term" value="{{ request.query_params.get('search_term', '') }}" placeholder="Search in name, email, or company">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="record_type" class="form-label">Record Type</label>
+                            <select class="form-select" id="record_type" name="record_type">
+                                <option value="" {% if not request.query_params.get('record_type') %}selected{% endif %}>All</option>
+                                <option value="Contact" {% if request.query_params.get('record_type') == 'Contact' %}selected{% endif %}>Contacts</option>
+                                <option value="Lead" {% if request.query_params.get('record_type') == 'Lead' %}selected{% endif %}>Leads</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="fields" class="form-label">Search Fields</label>
+                            <select class="form-select" id="fields" name="fields" multiple>
+                                <option value="FirstName,LastName" selected>Name</option>
+                                <option value="Email" selected>Email</option>
+                                <option value="Account.Name,Company" selected>Company</option>
+                                <option value="Phone">Phone</option>
+                                <option value="Title">Title</option>
+                            </select>
+                            <div class="form-text">Hold Ctrl/Cmd to select multiple fields</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="limit" class="form-label">Results Per Page</label>
+                            <select class="form-select" id="limit" name="limit">
+                                <option value="10" {% if request.query_params.get('limit') == '10' %}selected{% endif %}>10</option>
+                                <option value="20" {% if not request.query_params.get('limit') or request.query_params.get('limit') == '20' %}selected{% endif %}>20</option>
+                                <option value="50" {% if request.query_params.get('limit') == '50' %}selected{% endif %}>50</option>
+                                <option value="100" {% if request.query_params.get('limit') == '100' %}selected{% endif %}>100</option>
+                            </select>
+                        </div>
+                        <div class="col-12 d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">Clear</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Search Results</h5>
+                {% if contacts %}
+                <span class="badge bg-primary">{{ total_count }} contacts found</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if contacts %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Company</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for contact in contacts %}
+                            <tr class="result-item">
+                                <td>{{ contact.first_name }} {{ contact.last_name }}</td>
+                                <td>{{ contact.email }}</td>
+                                <td>{{ contact.company }}</td>
+                                <td>
+                                    <span class="badge {% if contact.record_type == 'Contact' %}bg-info{% else %}bg-warning text-dark{% endif %}">
+                                        {{ contact.record_type }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="/dashboard/contacts/{{ contact.id }}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if has_more or page > 1 %}
+                <nav aria-label="Search results pages">
+                    <ul class="pagination justify-content-center">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ pagination_url }}&page={{ page - 1 }}">Previous</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for p in range(max(1, page - 2), min(page + 3, (total_count // page_size) + 2)) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link" href="{{ pagination_url }}&page={{ p }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                        
+                        {% if has_more %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ pagination_url }}&page={{ page + 1 }}">Next</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="alert alert-info" role="alert">
+                    {% if search_performed %}
+                    No contacts found matching your search criteria.
+                    {% else %}
+                    Enter search criteria and click "Search" to find contacts.
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function clearForm() {
+        document.getElementById('search_term').value = '';
+        document.getElementById('record_type').value = '';
+        
+        // Reset multiple select
+        const fieldsSelect = document.getElementById('fields');
+        for (let i = 0; i < fieldsSelect.options.length; i++) {
+            fieldsSelect.options[i].selected = i < 3; // Select first three options by default
+        }
+        
+        document.getElementById('limit').value = '20';
+    }
+</script>
+{% endblock %}

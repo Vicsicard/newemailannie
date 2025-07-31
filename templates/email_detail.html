@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Email Detail - AI Email Agent{% endblock %}
+
+{% block page_title %}Email Detail{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Email Header -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ email.subject }}</h5>
+                <a href="/dashboard/email-search" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Search
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p><strong>From:</strong> {{ email.sender }}</p>
+                        <p><strong>To:</strong> {{ email.recipient }}</p>
+                        <p><strong>Date:</strong> {{ email.received_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        {% if email.classification %}
+                        <p>
+                            <strong>Classification:</strong>
+                            {% if email.classification == 'Interested' %}
+                            <span class="badge bg-success">Interested</span>
+                            {% elif email.classification == 'Maybe Interested' %}
+                            <span class="badge bg-warning text-dark">Maybe Interested</span>
+                            {% elif email.classification == 'Not Interested' %}
+                            <span class="badge bg-danger">Not Interested</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ email.classification }}</span>
+                            {% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="/dashboard/emails/{{ email.message_id }}/thread" class="btn btn-outline-primary">
+                            <i class="bi bi-chat-left-text"></i> View Thread
+                        </a>
+                        {% if contact %}
+                        <a href="/dashboard/contacts/{{ contact.id }}" class="btn btn-outline-info ms-2">
+                            <i class="bi bi-person"></i> View Contact
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Content -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Email Content</h5>
+            </div>
+            <div class="card-body">
+                <div class="email-content">
+                    {% if email.html_content %}
+                    <iframe id="emailContentFrame" srcdoc="{{ email.html_content|safe }}" style="width: 100%; height: 500px; border: 1px solid #dee2e6; border-radius: 0.25rem;"></iframe>
+                    {% else %}
+                    <pre class="email-text-content">{{ email.text_content }}</pre>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attachments (if any) -->
+    {% if email.attachments and email.attachments|length > 0 %}
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Attachments</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for attachment in email.attachments %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card attachment-card">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark fs-1"></i>
+                                <p class="mt-2 mb-1">{{ attachment.filename }}</p>
+                                <small class="text-muted">{{ attachment.size }} bytes</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Contact Information (if available) -->
+    {% if contact %}
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> {{ contact.first_name }} {{ contact.last_name }}</p>
+                        <p><strong>Email:</strong> {{ contact.email }}</p>
+                        <p><strong>Phone:</strong> {{ contact.phone or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Company:</strong> {{ contact.company or 'N/A' }}</p>
+                        <p><strong>Record Type:</strong> <span class="badge {% if contact.record_type == 'Contact' %}bg-info{% else %}bg-warning text-dark{% endif %}">{{ contact.record_type }}</span></p>
+                        <p><strong>Campaign Status:</strong> {{ contact.campaign_status or 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .email-text-content {
+        white-space: pre-wrap;
+        font-family: monospace;
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 0.25rem;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .attachment-card {
+        transition: all 0.2s ease;
+    }
+    
+    .attachment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Adjust iframe height to content
+    document.addEventListener('DOMContentLoaded', function() {
+        const iframe = document.getElementById('emailContentFrame');
+        if (iframe) {
+            iframe.onload = function() {
+                iframe.style.height = (iframe.contentWindow.document.body.scrollHeight + 20) + 'px';
+            };
+        }
+    });
+</script>
+{% endblock %}

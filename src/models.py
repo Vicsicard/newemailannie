@@ -51,6 +51,7 @@ class SalesforceContact(BaseModel):
     phone: Optional[str] = None
     campaign_status: Optional[str] = None
     lead_source: Optional[str] = None
+    record_type: Optional[str] = None  # 'Contact' or 'Lead'
     
 class EmailResponse(BaseModel):
     """Generated email response"""
@@ -104,3 +105,21 @@ class ProcessingStats(BaseModel):
     errors: int = 0
     average_processing_time: float = 0.0
     last_processed: Optional[datetime] = None
+
+class SearchResult(BaseModel):
+    """Search results with pagination metadata"""
+    results: List[SalesforceContact] = []
+    total_count: int = 0
+    page: int = 1
+    page_size: int = 20
+    has_more: bool = False
+    error: Optional[str] = None
+    
+class EmailSearchResult(BaseModel):
+    """Email search results with pagination metadata"""
+    emails: List[Email] = []
+    total_count: int = 0
+    page: int = 1
+    page_size: int = 20
+    has_more: bool = False
+    error: Optional[str] = None

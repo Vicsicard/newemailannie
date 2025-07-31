@@ -11,7 +11,7 @@ import os
 import uuid
 
 from .config import settings
-from .models import Email, EmailStatus, ProcessingResult, ProcessingStats
+from .models import Email, EmailStatus, ProcessingResult, ProcessingStats, EmailClassification
 from .ai_classifier import AIClassifier
 from .salesforce_client import SalesforceClient
 from .response_generator import ResponseGenerator
@@ -192,6 +192,25 @@ class MockEmailMonitor:
             logger.error(f"Error processing email {email.subject}: {e}")
             email.status = EmailStatus.ERROR
             self.stats.increment_errors()
+    
+    def get_stats(self):
+        """Get processing statistics"""
+        # Convert ProcessingStats to a dictionary with string keys
+        classifications = {
+            "Interested": self.stats.classifications.get(EmailClassification.INTERESTED, 0),
+            "Maybe Interested": self.stats.classifications.get(EmailClassification.MAYBE_INTERESTED, 0),
+            "Not Interested": self.stats.classifications.get(EmailClassification.NOT_INTERESTED, 0)
+        }
+        
+        return {
+            "total_emails_processed": self.stats.total_emails_processed,
+            "classifications": classifications,
+            "responses_sent": self.stats.responses_sent,
+            "notifications_sent": self.stats.notifications_sent,
+            "errors": self.stats.errors,
+            "average_processing_time": self.stats.average_processing_time,
+            "last_processed": self.stats.last_processed
+        }
     
     def add_test_email(self, subject: str, sender: str, body: str):
         """Add a test email for processing"""

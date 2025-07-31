@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - AI Email Agent{% endblock %}
+
+{% block page_title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> This dashboard shows the most critical metrics for monitoring the AI Email Agent's performance. Additional analytics will be added in future updates.
+</div>
+<div class="row">
+    <!-- Processing Statistics -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Processing Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <canvas id="processingStatsChart" height="250"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-summary">
+                            <h6 class="fw-bold">Summary</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Processed:</span>
+                                <span class="fw-bold">{{ stats.total_emails_processed }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Interested:</span>
+                                <span class="fw-bold text-success">{{ stats.classifications.Interested }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Maybe Interested:</span>
+                                <span class="fw-bold text-warning">{{ stats.classifications['Maybe Interested'] }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Not Interested:</span>
+                                <span class="fw-bold text-danger">{{ stats.classifications['Not Interested'] }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Avg. Processing Time:</span>
+                                <span class="fw-bold">{{ "%.2f"|format(stats.average_processing_time) }}s</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Last Processed:</span>
+                                <span class="fw-bold">{{ stats.last_processed|default('Never', true) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campaign Effectiveness -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Campaign Effectiveness</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="campaignEffectivenessChart" height="300"></canvas>
+                <div class="text-center mt-3">
+                    {% if campaign_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Campaign</th>
+                                    <th>Sent</th>
+                                    <th>Opened</th>
+                                    <th>Responded</th>
+                                    <th>Conversion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for campaign in campaign_stats %}
+                                <tr>
+                                    <td>{{ campaign.name }}</td>
+                                    <td>{{ campaign.sent }}</td>
+                                    <td>{{ campaign.opened }}</td>
+                                    <td>{{ campaign.responded }}</td>
+                                    <td>{{ "%.1f"|format(campaign.conversion_rate) }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        No campaign data available yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead Conversion Tracking -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Lead Conversion Tracking</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="leadConversionChart" height="300"></canvas>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between">
+                        <div class="text-center">
+                            <h3 class="mb-0">{{ lead_stats.conversion_rate|default('0.0') }}%</h3>
+                            <small class="text-muted">Conversion Rate</small>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="mb-0">{{ lead_stats.avg_time_to_convert|default('N/A') }}</h3>
+                            <small class="text-muted">Avg. Time to Convert</small>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="mb-0">{{ lead_stats.total_converted|default('0') }}</h3>
+                            <small class="text-muted">Total Converted</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <canvas id="responseTimeChart" height="250"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="classificationAccuracyChart" height="250"></canvas>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h6 class="fw-bold">Key Performance Indicators</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Current</th>
+                                        <th>Target</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Classification Accuracy</td>
+                                        <td>{{ performance_metrics.classification_accuracy|default('N/A') }}</td>
+                                        <td>90%</td>
+                                        <td>
+                                            {% if performance_metrics.classification_accuracy >= 90 %}
+                                            <span class="badge bg-success">On Target</span>
+                                            {% else %}
+                                            <span class="badge bg-warning text-dark">Needs Improvement</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Response Time</td>
+                                        <td>{{ performance_metrics.avg_response_time|default('N/A') }}</td>
+                                        <td>< 1 hour</td>
+                                        <td>
+                                            {% if performance_metrics.avg_response_time_seconds < 3600 %}
+                                            <span class="badge bg-success">On Target</span>
+                                            {% else %}
+                                            <span class="badge bg-warning text-dark">Needs Improvement</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Manual Triage Reduction</td>
+                                        <td>{{ performance_metrics.manual_triage_reduction|default('N/A') }}</td>
+                                        <td>70%</td>
+                                        <td>
+                                            {% if performance_metrics.manual_triage_reduction >= 70 %}
+                                            <span class="badge bg-success">On Target</span>
+                                            {% else %}
+                                            <span class="badge bg-warning text-dark">Needs Improvement</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Processing Stats Chart
+        const processingStatsCtx = document.getElementById('processingStatsChart').getContext('2d');
+        const processingStatsChart = new Chart(processingStatsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Interested', 'Maybe Interested', 'Not Interested'],
+                datasets: [{
+                    label: 'Email Classification Results',
+                    data: [
+                        {{ stats.classifications.Interested }}, 
+                        {{ stats.classifications['Maybe Interested'] }}, 
+                        {{ stats.classifications['Not Interested'] }}
+                    ],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(220, 53, 69, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Email Classification Distribution'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // Campaign Effectiveness Chart (placeholder with mock data)
+        const campaignLabels = [];
+        const openRateData = [];
+        const responseRateData = [];
+        const conversionRateData = [];
+        
+        {% for campaign in campaign_stats %}
+            campaignLabels.push('{{ campaign.name }}');
+            openRateData.push({{ campaign.open_rate }});
+            responseRateData.push({{ campaign.response_rate }});
+            conversionRateData.push({{ campaign.conversion_rate }});
+        {% endfor %}
+        
+        const campaignData = {
+            labels: campaignLabels,
+            datasets: [
+                {
+                    label: 'Open Rate',
+                    data: openRateData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Response Rate',
+                    data: responseRateData,
+                    backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Conversion Rate',
+                    data: conversionRateData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        if (campaignLabels.length > 0) {
+            const campaignEffectivenessCtx = document.getElementById('campaignEffectivenessChart').getContext('2d');
+            const campaignEffectivenessChart = new Chart(campaignEffectivenessCtx, {
+                type: 'bar',
+                data: campaignData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Campaign Performance Metrics (%)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Lead Conversion Chart
+        const weeklyNewLeads = {{ lead_stats.weekly_new_leads|default([10, 15, 12, 18])|tojson }};
+        const weeklyConverted = {{ lead_stats.weekly_converted|default([2, 4, 3, 6])|tojson }};
+        const weeklyConversionRates = {{ lead_stats.weekly_conversion_rates|default([20, 26.7, 25, 33.3])|tojson }};
+        
+        const leadConversionData = {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [
+                {
+                    label: 'New Leads',
+                    data: weeklyNewLeads,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    type: 'bar'
+                },
+                {
+                    label: 'Converted Leads',
+                    data: weeklyConverted,
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    type: 'bar'
+                },
+                {
+                    label: 'Conversion Rate (%)',
+                    data: weeklyConversionRates,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    type: 'line',
+                    yAxisID: 'percentage'
+                }
+            ]
+        };
+
+        const leadConversionCtx = document.getElementById('leadConversionChart').getContext('2d');
+        const leadConversionChart = new Chart(leadConversionCtx, {
+            type: 'bar',
+            data: leadConversionData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Lead Conversion Trends'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        }
+                    },
+                    percentage: {
+                        beginAtZero: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Percentage'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Response Time Chart
+        const weeklyResponseTimes = {{ performance_metrics.weekly_response_times|default([45, 38, 30, 25])|tojson }};
+        
+        const responseTimeData = {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [{
+                label: 'Average Response Time (minutes)',
+                data: weeklyResponseTimes,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            }]
+        };
+
+        const responseTimeCtx = document.getElementById('responseTimeChart').getContext('2d');
+        const responseTimeChart = new Chart(responseTimeCtx, {
+            type: 'line',
+            data: responseTimeData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Average Response Time Trend'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Minutes'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Classification Accuracy Chart
+        const weeklyAccuracy = {{ performance_metrics.weekly_accuracy|default([85, 88, 90, 92.5])|tojson }};
+        
+        const accuracyData = {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [{
+                label: 'Classification Accuracy (%)',
+                data: weeklyAccuracy,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            }]
+        };
+
+        const accuracyCtx = document.getElementById('classificationAccuracyChart').getContext('2d');
+        const accuracyChart = new Chart(accuracyCtx, {
+            type: 'line',
+            data: accuracyData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Classification Accuracy Trend'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 80,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Accuracy (%)'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

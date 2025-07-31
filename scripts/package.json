@@ -1,0 +1,15 @@
+{
+  "name": "ai-email-agent-keep-alive",
+  "version": "1.0.0",
+  "description": "Keep-alive service for AI Email Agent on Render",
+  "main": "keep_alive.js",
+  "scripts": {
+    "start": "node keep_alive.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "author": "Annie",
+  "license": "MIT",
+  "dependencies": {}
+}

@@ -1,0 +1,78 @@
+# Deployment Configuration for AI Email Agent
+name: ai-email-agent
+version: 1.0.0
+
+# Environment variables (will be overridden by actual .env in production)
+environment:
+  - IMAP_SERVER=outlook.office365.com
+  - IMAP_PORT=993
+  - EMAIL_CHECK_INTERVAL_MINUTES=15
+  - LOG_LEVEL=INFO
+  - SALESFORCE_DOMAIN=login.salesforce.com
+  - SALESFORCE_API_VERSION=55.0
+
+# Server configuration
+server:
+  host: 0.0.0.0
+  port: 8000
+  workers: 4
+  timeout: 60
+
+# Feature flags
+features:
+  enable_email_monitoring: true
+  enable_salesforce_integration: true
+  enable_analytics_dashboard: true
+  enable_notification_service: true
+  enable_email_search: true
+
+# Database configuration
+database:
+  type: sqlite
+  path: ./data/email_agent.db
+
+# Monitoring and logging
+monitoring:
+  enable_prometheus: false
+  log_retention_days: 30
+  error_reporting: true
+
+# Security
+security:
+  enable_authentication: true
+  session_expiry_minutes: 60
+  cors_origins:
+    - https://anniesemail.com
+    - https://admin.anniesemail.com
+  ssl_enabled: true
+  hsts_enabled: true
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+
+# Health checks
+health_checks:
+  enabled: true
+  endpoint: /health
+  interval_seconds: 30
+  timeout_seconds: 5
+  unhealthy_threshold: 3
+  healthy_threshold: 2
+
+# Backup and recovery
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 7
+  storage_path: ./backups
+
+# Analytics dashboard
+analytics_dashboard:
+  cache_enabled: true
+  cache_expiry_minutes: 5
+  real_time_updates: true
+  metrics:
+    - email_processing_rate
+    - lead_conversion_rate
+    - campaign_effectiveness
+    - response_time

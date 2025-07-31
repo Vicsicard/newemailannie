@@ -169,13 +169,81 @@ Test coverage includes:
 python main.py
 ```
 
-### Production (Render/AWS Lambda)
-1. Set environment variables in deployment platform
-2. Configure logging and monitoring
-3. Set up health checks
-4. Monitor performance metrics
+### Production Deployment
+
+#### Prerequisites
+- Python 3.9+ installed
+- Git for version control
+- Access to email server (IMAP/SMTP)
+- Salesforce API access
+- AI provider API key (OpenAI or Anthropic)
+
+#### Deployment Options
+
+1. **Render Deployment (Recommended)**
+   - Use the provided `render.yaml` configuration
+   - Follow the detailed instructions in `RENDER_DEPLOYMENT.md`
+   - Set up the keep-alive script to prevent service spin-down
+   - Utilize the `/health` endpoint for monitoring
+   ```bash
+   # Run the keep-alive script locally (if needed)
+   cd scripts
+   node keep_alive.js
+   ```
+
+2. **Docker Deployment**
+   ```bash
+   # Build the Docker image
+   docker build -t ai-email-agent .
+   
+   # Run the container
+   docker run -d --name ai-email-agent -p 8000:8000 --env-file .env ai-email-agent
+   ```
+
+3. **Cloud Platform (AWS, Azure, GCP)**
+   - Use the provided `deployment.yml` configuration
+   - Set all environment variables in the cloud platform
+   - Configure auto-scaling based on traffic patterns
+   - Set up health checks at `/health` endpoint
+
+4. **Serverless Deployment (AWS Lambda, Azure Functions)**
+   - Package the application with dependencies
+   - Configure environment variables
+   - Set up API Gateway for HTTP endpoints
+   - Configure scheduled triggers for email checking
+
+#### Production Checklist
+
+- [ ] Environment variables securely configured
+- [ ] Database backups enabled (if applicable)
+- [ ] Logging and monitoring set up
+- [ ] Error alerting configured
+- [ ] SSL/TLS certificates installed
+- [ ] Rate limiting implemented
+- [ ] Health checks configured
+- [ ] Backup email processing strategy in place
 
 ## Monitoring & Analytics
+
+### Analytics Dashboard
+
+The system includes a comprehensive analytics dashboard accessible at `/dashboard/analytics` that provides real-time insights into system performance and business impact metrics.
+
+#### Core Business Impact Metrics
+- **Email Classification Distribution**: Visualizes the breakdown of emails by classification category
+- **Campaign Effectiveness**: Tracks open rates, response rates, and conversion rates by campaign
+- **Lead Conversion Tracking**: Monitors new leads, converted leads, and conversion rates over time
+
+#### System Performance Metrics
+- **Classification Accuracy**: Measures AI classification precision over time (target: 90%+)
+- **Processing Time**: Tracks average email processing time (target: <1 minute)
+- **Manual Triage Reduction**: Percentage reduction in manual email handling
+
+#### Dashboard Features
+- Real-time data visualization with Chart.js
+- Responsive design for desktop and mobile access
+- Key performance indicators with status indicators
+- Data caching for improved performance
 
 ### Key Metrics
 - Classification accuracy (target: 90%+)

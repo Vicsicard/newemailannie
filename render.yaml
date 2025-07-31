@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: ai-email-agent
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: standard
+    autoDeploy: false
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: EMAIL_PROVIDER
+        sync: false
+      - key: EMAIL_ADDRESS
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: IMAP_SERVER
+        sync: false
+      - key: IMAP_PORT
+        sync: false
+      - key: SALESFORCE_USERNAME
+        sync: false
+      - key: SALESFORCE_PASSWORD
+        sync: false
+      - key: SALESFORCE_SECURITY_TOKEN
+        sync: false
+      - key: SALESFORCE_DOMAIN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AI_PROVIDER
+        sync: false
+    healthCheckPath: /health
+    healthCheckTimeout: 5
